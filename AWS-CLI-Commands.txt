@@ -1,0 +1,63 @@
+
+########################################################
+
+Using the AWS CLI to launch an Amazon EC2 instance with an Apache web server
+
+Used Below commands to perform the task
+
+############################################################
+
+
+Install & configure the AWS CLI (Visit the official AWS CLI page for directions on how to install the package on the OS of your choice.)
+
+$ which aws (let’s confirm the CLI has been installed properly by opening the terminal and running the command)
+
+$ aws configure (Get the below details from AWS Console)
+
+AWS Access Key ID [None]: [YOUR_ACCESS_KEY]
+AWS Secret Access Key [None]: [YOUR_SECRET_ACCESS_KEY]
+Default region name [None]: us-east-1
+Default output format [None]: json
+
+$ cd /Users/sairambathini/AWS/Keys (Keep your keys on one folder for ease access)
+
+We’ll be using an Amazon Linux 2 AMI. To get the ID, we’ll need to go to the EC2 console.
+
+$ aws ec2 describe-vpcs (Get the VPC ID)
+
+$ aws ec2 describe-subnets (Get the subnet ID)
+
+$ aws ec2 create-key-pair --key-name [your-key-name] --query 'KeyMaterial' --output text > [your-key-name].pem (create an EC2 key pair so we can SSH into the instance)
+
+$ chmod 400 [your-key-name].pem (Enable permission)
+
+$ aws ec2 create-security-group --group-name [your-sg-name] --description "your sg description" --vpc-id [your-vpc-id] (Create our own security group)
+
+(The CLI will then return the ‘Group-id.’ Copy this id and paste it to your working text file for easy access)
+
+$ curl https://checkip.amazonaws.com (To find our IP address for allowing port 22)
+
+$ aws ec2 authorize-security-group-ingress --group-id [your-group-id] --protocol tcp --port 22 --cidr [your-ip-address/32] (Copy the address, and then create an SSH rule (remember to add the /32 at the end of your IP address))
+
+$ aws ec2 authorize-security-group-ingress --group-id [your-group-id] --protocol tcp --port 80 --cidr 0.0.0.0/0 (For HTTP, we need to allow traffic to ‘port 80’ and from anywhere (0.0.0.0/0).
+
+$ aws ec2 describe-security-groups (Verify the rules by listing security groups)
+
+Have created a bash script that installs and runs an Apache web server use the Apache-install-run-web-server.sh file.
+
+$ aws ec2 run-instances --image-id ami-0b0dcb5067f052a63 --count 1 --instance-type t2.micro --key-name [your-keypair-name] --security-group-ids [your-sg-id] --subnet-id [your-subnet-id] --user-data file://../Scripts/apache-install.sh
+(Launching EC2 instance and using ‘––user-data’ parameter to point the apache install script file)
+
+$ aws ec2 describe-instances --query "Reservations [*]. Instances [*].{PublicIP:PublicIpAddress}" --output text
+
+#For checking whether the Apache script executed correctly by going to the public IPv4 address.
+
+
+Copy the address and paste it into your browser. (Sucess)
+
+
+ws ec2 stop-instances --instance-ids [your-instance-id]
+$ aws ec2 terminate-instances --instance-ids [your-instance-id]
+(Since this is a demo, we don’t want to keep this instance constantly running. To stop or terminate an instance through the CLI we can run these commands)
+
+

@@ -1,0 +1,17 @@
+
+#######################################
+
+Turning our instance into its own AMI for fast deployment
+
+######################################
+
+$ aws ec2 describe-instances (Get the instance ID)
+
+$ aws ec2 create-image --instance-id [instance-id] --name "ami-name" --description "am1 description" (Create a New Image besed on Instance)
+
+$ aws ec2 run-instances --image-id [your-image-id] --count 1 --instance-type t2.micro --key-name [your-keypair-name] --security-group-ids [your-sg-id] --subnet-id [your-subnet-id]
+(launch a new instance with the new image. Copy the ‘ImageId’ and run the ‘run-instances’ command (we’ll use the same key name, security group, and subnet as before))
+
+If we go to the console, we’ll see the new instance. Let’s go to its public IPv4 address and confirm the web server ran correctly.
+
+
